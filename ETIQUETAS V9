@@ -1,0 +1,2336 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local TextChatService = game:GetService("TextChatService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+
+-- ID autorizado para funciones especiales
+local AUTHORIZED_USER_ID = 5730248463
+local isAuthorized = (LocalPlayer.UserId == AUTHORIZED_USER_ID)
+
+-- Configuración de las etiquetas principales
+local TAG_CONFIGS = {
+    {
+        Name = "Owner",
+        Text = "👑 OWNER 👑",
+        TextColor = Color3.fromRGB(255, 215, 0),
+        BorderColor = Color3.fromRGB(200, 160, 0),
+        HexColor = "#FFD700",
+        ActiveBg = Color3.fromRGB(60, 50, 10)
+    },
+    {
+        Name = "Admin",
+        Text = "🛠 ADMIN 🛠",
+        TextColor = Color3.fromRGB(186, 85, 211),
+        BorderColor = Color3.fromRGB(138, 43, 226),
+        HexColor = "#BA55D3",
+        ActiveBg = Color3.fromRGB(50, 20, 60)
+    },
+    {
+        Name = "Mod",
+        Text = "👑 MOD 👑",
+        TextColor = Color3.fromRGB(255, 220, 0),
+        BorderColor = Color3.fromRGB(220, 180, 0),
+        HexColor = "#FFD700",
+        ActiveBg = Color3.fromRGB(60, 50, 10)
+    },
+    {
+        Name = "Creator",
+        Text = "👑 CREADOR 👑",
+        TextColor = Color3.fromRGB(255, 215, 0),
+        BorderColor = Color3.fromRGB(220, 180, 0),
+        HexColor = "#FFD700",
+        ActiveBg = Color3.fromRGB(60, 50, 10)
+    },
+    {
+        Name = "ContentCreator",
+        Text = "🎬 Creador de contenido",
+        TextColor = Color3.fromRGB(255, 105, 180),
+        BorderColor = Color3.fromRGB(220, 80, 150),
+        HexColor = "#FF69B4",
+        ActiveBg = Color3.fromRGB(60, 20, 40)
+    },
+    {
+        Name = "Trophy",
+        Text = "🏆",
+        TextColor = Color3.fromRGB(255, 215, 0),
+        BorderColor = Color3.fromRGB(200, 160, 0),
+        HexColor = "#FFD700",
+        ActiveBg = Color3.fromRGB(60, 50, 10)
+    },
+    {
+        Name = "Projector",
+        Text = "📽",
+        TextColor = Color3.fromRGB(0, 200, 255),
+        BorderColor = Color3.fromRGB(0, 150, 220),
+        HexColor = "#00C8FF",
+        ActiveBg = Color3.fromRGB(10, 40, 60)
+    },
+    {
+        Name = "Butterfly",
+        Text = "🦋",
+        TextColor = Color3.fromRGB(255, 130, 220),
+        BorderColor = Color3.fromRGB(200, 80, 180),
+        HexColor = "#FF82DC",
+        ActiveBg = Color3.fromRGB(60, 20, 50)
+    }
+}
+
+-- Crear la interfaz ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "UnifiedTagsGui"
+screenGui.ResetOnSpawn = false
+
+local success = pcall(function()
+    screenGui.Parent = CoreGui
+end)
+if not success then
+    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Sonido para botones
+local clickSound = Instance.new("Sound")
+clickSound.Name = "ButtonClickSound"
+clickSound.SoundId = "rbxassetid://15675059323"
+clickSound.PlaybackSpeed = 1.0
+clickSound.Volume = 0.5
+clickSound.Parent = screenGui
+
+local function playClickSound()
+    clickSound:Play()
+end
+
+-- =========================================================================
+-- PANEL PRINCIPAL DE ETIQUETAS PROPIAS
+-- =========================================================================
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 220, 0, 0)
+mainFrame.AutomaticSize = Enum.AutomaticSize.Y
+mainFrame.Position = UDim2.new(0.02, 55, 0.2, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 8)
+frameCorner.Parent = mainFrame
+
+local frameStroke = Instance.new("UIStroke")
+frameStroke.Thickness = 2
+frameStroke.Color = Color3.fromRGB(255, 215, 0)
+frameStroke.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -40, 0, 35)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "🛠 MIS ETIQUETAS 🛠"
+titleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+titleLabel.TextSize = 13
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 22, 0, 22)
+closeButton.Position = UDim2.new(1, -28, 0, 6.5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "✕"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 14
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    playClickSound()
+    mainFrame.Visible = false
+end)
+
+local scrollContainer = Instance.new("ScrollingFrame")
+scrollContainer.Name = "ScrollContainer"
+scrollContainer.Size = UDim2.new(1, 0, 0, 0)
+scrollContainer.Position = UDim2.new(0, 0, 0, 35)
+scrollContainer.AutomaticSize = Enum.AutomaticSize.Y
+scrollContainer.BackgroundTransparency = 1
+scrollContainer.BorderSizePixel = 0
+scrollContainer.ScrollBarThickness = 0
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrollContainer.Parent = mainFrame
+
+local containerPadding = Instance.new("UIPadding")
+containerPadding.PaddingTop = UDim.new(0, 5)
+containerPadding.PaddingBottom = UDim.new(0, 10)
+containerPadding.Parent = scrollContainer
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 6)
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = scrollContainer
+
+-- =========================================================================
+-- MENÚ SECRETO Y CONTROLES
+-- =========================================================================
+
+local secretMenuButton = Instance.new("TextButton")
+secretMenuButton.Name = "SecretMenuButton"
+secretMenuButton.Size = UDim2.new(0, 130, 0, 35)
+secretMenuButton.Position = UDim2.new(1, -140, 0, 2)
+secretMenuButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+secretMenuButton.BorderSizePixel = 0
+secretMenuButton.Text = "🔒 Menú Secreto"
+secretMenuButton.TextColor3 = Color3.fromRGB(200, 100, 255)
+secretMenuButton.TextSize = 13
+secretMenuButton.Font = Enum.Font.SourceSansBold
+secretMenuButton.Active = true
+secretMenuButton.Parent = screenGui
+
+local secretCorner = Instance.new("UICorner")
+secretCorner.CornerRadius = UDim.new(0, 6)
+secretCorner.Parent = secretMenuButton
+
+local secretStroke = Instance.new("UIStroke")
+secretStroke.Thickness = 1.5
+secretStroke.Color = Color3.fromRGB(150, 50, 200)
+secretStroke.Parent = secretMenuButton
+
+local espFrame = Instance.new("Frame")
+espFrame.Name = "ESPFrame"
+espFrame.Size = UDim2.new(0, 220, 0, isAuthorized and 395 or 220)
+espFrame.Position = UDim2.new(0.75, 0, 0.1, 0)
+espFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+espFrame.BorderSizePixel = 0
+espFrame.Active = true
+espFrame.Draggable = true
+espFrame.Visible = false
+espFrame.Parent = screenGui
+
+local espFrameCorner = Instance.new("UICorner")
+espFrameCorner.CornerRadius = UDim.new(0, 8)
+espFrameCorner.Parent = espFrame
+
+local espFrameStroke = Instance.new("UIStroke")
+espFrameStroke.Thickness = 2
+espFrameStroke.Color = Color3.fromRGB(150, 50, 200)
+espFrameStroke.Parent = espFrame
+
+local topButtonsScroll = Instance.new("ScrollingFrame")
+topButtonsScroll.Size = UDim2.new(0, 195, 0, 32)
+topButtonsScroll.Position = UDim2.new(0, 12, 0, 38)
+topButtonsScroll.BackgroundTransparency = 1
+topButtonsScroll.BorderSizePixel = 0
+topButtonsScroll.ScrollBarThickness = 2
+topButtonsScroll.CanvasSize = UDim2.new(0, 280, 0, 0)
+topButtonsScroll.Parent = espFrame
+
+local topButtonsLayout = Instance.new("UIListLayout")
+topButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
+topButtonsLayout.Padding = UDim.new(0, 5)
+topButtonsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+topButtonsLayout.Parent = topButtonsScroll
+
+local codesMenuBtn = Instance.new("TextButton")
+codesMenuBtn.Size = UDim2.new(0, 85, 0, 28)
+codesMenuBtn.BackgroundColor3 = Color3.fromRGB(70, 30, 70)
+codesMenuBtn.BorderSizePixel = 0
+codesMenuBtn.Text = "🎁 Codes"
+codesMenuBtn.TextColor3 = Color3.fromRGB(255, 150, 255)
+codesMenuBtn.TextSize = 11
+codesMenuBtn.Font = Enum.Font.SourceSansBold
+codesMenuBtn.Parent = topButtonsScroll
+
+local codesMenuCorner = Instance.new("UICorner")
+codesMenuCorner.CornerRadius = UDim.new(0, 6)
+codesMenuCorner.Parent = codesMenuBtn
+
+local messagesMenuBtn = Instance.new("TextButton")
+messagesMenuBtn.Size = UDim2.new(0, 90, 0, 28)
+messagesMenuBtn.BackgroundColor3 = Color3.fromRGB(30, 60, 80)
+messagesMenuBtn.BorderSizePixel = 0
+messagesMenuBtn.Text = "💬 Mensajes"
+messagesMenuBtn.TextColor3 = Color3.fromRGB(150, 220, 255)
+messagesMenuBtn.TextSize = 11
+messagesMenuBtn.Font = Enum.Font.SourceSansBold
+messagesMenuBtn.Parent = topButtonsScroll
+
+local messagesMenuCorner = Instance.new("UICorner")
+messagesMenuCorner.CornerRadius = UDim.new(0, 6)
+messagesMenuCorner.Parent = messagesMenuBtn
+
+local pollMenuBtn = Instance.new("TextButton")
+pollMenuBtn.Size = UDim2.new(0, 95, 0, 28)
+pollMenuBtn.BackgroundColor3 = Color3.fromRGB(100, 60, 20)
+pollMenuBtn.BorderSizePixel = 0
+pollMenuBtn.Text = "📊 Votaciones"
+pollMenuBtn.TextColor3 = Color3.fromRGB(255, 200, 100)
+pollMenuBtn.TextSize = 11
+pollMenuBtn.Font = Enum.Font.SourceSansBold
+pollMenuBtn.Parent = topButtonsScroll
+
+local pollMenuCorner = Instance.new("UICorner")
+pollMenuCorner.CornerRadius = UDim.new(0, 6)
+pollMenuCorner.Parent = pollMenuBtn
+
+local espTitleLabel = Instance.new("TextLabel")
+espTitleLabel.Name = "EspTitleLabel"
+espTitleLabel.Size = UDim2.new(1, -10, 0, 35)
+espTitleLabel.Position = UDim2.new(0, 12, 0, 72)
+espTitleLabel.BackgroundTransparency = 1
+espTitleLabel.Text = "👁️ VISUALIZACIÓN & OTROS"
+espTitleLabel.TextColor3 = Color3.fromRGB(200, 100, 255)
+espTitleLabel.TextSize = 13
+espTitleLabel.Font = Enum.Font.SourceSansBold
+espTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+espTitleLabel.Parent = espFrame
+
+local openTagsButton = Instance.new("TextButton")
+openTagsButton.Name = "OpenTagsButton"
+openTagsButton.Size = UDim2.new(0, 195, 0, 30)
+openTagsButton.Position = UDim2.new(0, 12, 0, 105)
+openTagsButton.BackgroundColor3 = Color3.fromRGB(50, 30, 70)
+openTagsButton.BorderSizePixel = 0
+openTagsButton.Text = "🏷️ Mis Etiquetas"
+openTagsButton.TextColor3 = Color3.fromRGB(220, 150, 255)
+openTagsButton.TextSize = 12
+openTagsButton.Font = Enum.Font.SourceSansBold
+openTagsButton.Parent = espFrame
+
+local openTagsCorner = Instance.new("UICorner")
+openTagsCorner.CornerRadius = UDim.new(0, 6)
+openTagsCorner.Parent = openTagsButton
+
+openTagsButton.MouseButton1Click:Connect(function()
+    playClickSound()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+local espToggleButton = Instance.new("TextButton")
+espToggleButton.Name = "EspToggleButton"
+espToggleButton.Size = UDim2.new(0, 195, 0, 30)
+espToggleButton.Position = UDim2.new(0, 12, 0, 140)
+espToggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+espToggleButton.BorderSizePixel = 0
+espToggleButton.Text = "ESP: [DESACTIVADO]"
+espToggleButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+espToggleButton.TextSize = 12
+espToggleButton.Font = Enum.Font.SourceSansBold
+espToggleButton.Parent = espFrame
+
+local espBtnCorner = Instance.new("UICorner")
+espBtnCorner.CornerRadius = UDim.new(0, 6)
+espBtnCorner.Parent = espToggleButton
+
+local espBtnStroke = Instance.new("UIStroke")
+espBtnStroke.Thickness = 1.5
+espBtnStroke.Color = Color3.fromRGB(200, 50, 50)
+espBtnStroke.Parent = espToggleButton
+
+local openPlayersListBtn = Instance.new("TextButton")
+openPlayersListBtn.Name = "OpenPlayersListBtn"
+openPlayersListBtn.Size = UDim2.new(0, 195, 0, 30)
+openPlayersListBtn.Position = UDim2.new(0, 12, 0, 175)
+openPlayersListBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 60)
+openPlayersListBtn.BorderSizePixel = 0
+openPlayersListBtn.Text = "📋 Lista de Jugadores"
+openPlayersListBtn.TextColor3 = Color3.fromRGB(150, 200, 255)
+openPlayersListBtn.TextSize = 12
+openPlayersListBtn.Font = Enum.Font.SourceSansBold
+openPlayersListBtn.Parent = espFrame
+
+local openPlayersListCorner = Instance.new("UICorner")
+openPlayersListCorner.CornerRadius = UDim.new(0, 6)
+openPlayersListCorner.Parent = openPlayersListBtn
+
+local selectedTagIndex = 1
+local selectTagBtn, applyPlayerTagBtn, removePlayerTagBtn, fakeBanBtn, fakeUnbanBtn, selectedPlayerLabel
+local customPlayerTags = {}
+local selectedPlayersTable = {}
+
+if isAuthorized then
+    selectTagBtn = Instance.new("TextButton")
+    selectTagBtn.Name = "SelectTagBtn"
+    selectTagBtn.Size = UDim2.new(0, 195, 0, 30)
+    selectTagBtn.Position = UDim2.new(0, 12, 0, 210)
+    selectTagBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    selectTagBtn.BorderSizePixel = 0
+    selectTagBtn.Text = "Tag: " .. TAG_CONFIGS[selectedTagIndex].Text
+    selectTagBtn.TextColor3 = TAG_CONFIGS[selectedTagIndex].TextColor
+    selectTagBtn.TextSize = 12
+    selectTagBtn.Font = Enum.Font.SourceSansBold
+    selectTagBtn.Parent = espFrame
+
+    local selectTagCorner = Instance.new("UICorner")
+    selectTagCorner.CornerRadius = UDim.new(0, 6)
+    selectTagCorner.Parent = selectTagBtn
+
+    selectTagBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        selectedTagIndex = selectedTagIndex + 1
+        if selectedTagIndex > #TAG_CONFIGS then
+            selectedTagIndex = 1
+        end
+        selectTagBtn.Text = "Tag: " .. TAG_CONFIGS[selectedTagIndex].Text
+        selectTagBtn.TextColor3 = TAG_CONFIGS[selectedTagIndex].TextColor
+    end)
+
+    applyPlayerTagBtn = Instance.new("TextButton")
+    applyPlayerTagBtn.Size = UDim2.new(0, 93, 0, 28)
+    applyPlayerTagBtn.Position = UDim2.new(0, 12, 0, 245)
+    applyPlayerTagBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 60)
+    applyPlayerTagBtn.BorderSizePixel = 0
+    applyPlayerTagBtn.Text = "➕ Poner Tag"
+    applyPlayerTagBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    applyPlayerTagBtn.TextSize = 11
+    applyPlayerTagBtn.Font = Enum.Font.SourceSansBold
+    applyPlayerTagBtn.Parent = espFrame
+
+    local applyCorner = Instance.new("UICorner")
+    applyCorner.CornerRadius = UDim.new(0, 6)
+    applyCorner.Parent = applyPlayerTagBtn
+
+    removePlayerTagBtn = Instance.new("TextButton")
+    removePlayerTagBtn.Size = UDim2.new(0, 95, 0, 28)
+    removePlayerTagBtn.Position = UDim2.new(0, 112, 0, 245)
+    removePlayerTagBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
+    removePlayerTagBtn.BorderSizePixel = 0
+    removePlayerTagBtn.Text = "➖ Quitar Tag"
+    removePlayerTagBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    removePlayerTagBtn.TextSize = 11
+    removePlayerTagBtn.Font = Enum.Font.SourceSansBold
+    removePlayerTagBtn.Parent = espFrame
+
+    local removeCorner = Instance.new("UICorner")
+    removeCorner.CornerRadius = UDim.new(0, 6)
+    removeCorner.Parent = removePlayerTagBtn
+
+    fakeBanBtn = Instance.new("TextButton")
+    fakeBanBtn.Size = UDim2.new(0, 93, 0, 28)
+    fakeBanBtn.Position = UDim2.new(0, 12, 0, 278)
+    fakeBanBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+    fakeBanBtn.BorderSizePixel = 0
+    fakeBanBtn.Text = "🚫 Banear"
+    fakeBanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    fakeBanBtn.TextSize = 11
+    fakeBanBtn.Font = Enum.Font.SourceSansBold
+    fakeBanBtn.Parent = espFrame
+
+    local fakeBanCorner = Instance.new("UICorner")
+    fakeBanCorner.CornerRadius = UDim.new(0, 6)
+    fakeBanCorner.Parent = fakeBanBtn
+
+    fakeUnbanBtn = Instance.new("TextButton")
+    fakeUnbanBtn.Size = UDim2.new(0, 95, 0, 28)
+    fakeUnbanBtn.Position = UDim2.new(0, 112, 0, 278)
+    fakeUnbanBtn.BackgroundColor3 = Color3.fromRGB(30, 160, 70)
+    fakeUnbanBtn.BorderSizePixel = 0
+    fakeUnbanBtn.Text = "🟢 Desbanear"
+    fakeUnbanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    fakeUnbanBtn.TextSize = 11
+    fakeUnbanBtn.Font = Enum.Font.SourceSansBold
+    fakeUnbanBtn.Parent = espFrame
+
+    local fakeUnbanCorner = Instance.new("UICorner")
+    fakeUnbanCorner.CornerRadius = UDim.new(0, 6)
+    fakeUnbanCorner.Parent = fakeUnbanBtn
+
+    selectedPlayerLabel = Instance.new("TextLabel")
+    selectedPlayerLabel.Size = UDim2.new(0, 195, 0, 30)
+    selectedPlayerLabel.Position = UDim2.new(0, 12, 0, 312)
+    selectedPlayerLabel.BackgroundTransparency = 1
+    selectedPlayerLabel.Text = "Seleccionados: 0"
+    selectedPlayerLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    selectedPlayerLabel.TextSize = 11
+    selectedPlayerLabel.Font = Enum.Font.SourceSans
+    selectedPlayerLabel.Parent = espFrame
+end
+
+-- =========================================================================
+-- CREADOR DE CÓDIGOS (LISTA EXPANDIDA DE ÍTEMS)
+-- =========================================================================
+
+local codeCreatorFrame = Instance.new("Frame")
+codeCreatorFrame.Name = "CodeCreatorFrame"
+codeCreatorFrame.Size = UDim2.new(0, 240, 0, 310)
+codeCreatorFrame.Position = UDim2.new(0.4, 0, 0.25, 0)
+codeCreatorFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+codeCreatorFrame.BorderSizePixel = 0
+codeCreatorFrame.Active = true
+codeCreatorFrame.Draggable = true
+codeCreatorFrame.Visible = false
+codeCreatorFrame.Parent = screenGui
+
+local ccCorner = Instance.new("UICorner")
+ccCorner.CornerRadius = UDim.new(0, 8)
+ccCorner.Parent = codeCreatorFrame
+
+local ccStroke = Instance.new("UIStroke")
+ccStroke.Thickness = 2
+ccStroke.Color = Color3.fromRGB(255, 150, 255)
+ccStroke.Parent = codeCreatorFrame
+
+local ccTitle = Instance.new("TextLabel")
+ccTitle.Size = UDim2.new(1, -40, 0, 35)
+ccTitle.Position = UDim2.new(0, 10, 0, 0)
+ccTitle.BackgroundTransparency = 1
+ccTitle.Text = "🎁 Creador de Códigos"
+ccTitle.TextColor3 = Color3.fromRGB(255, 150, 255)
+ccTitle.TextSize = 13
+ccTitle.Font = Enum.Font.SourceSansBold
+ccTitle.TextXAlignment = Enum.TextXAlignment.Left
+ccTitle.Parent = codeCreatorFrame
+
+local ccClose = Instance.new("TextButton")
+ccClose.Size = UDim2.new(0, 22, 0, 22)
+ccClose.Position = UDim2.new(1, -28, 0, 6.5)
+ccClose.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+ccClose.BorderSizePixel = 0
+ccClose.Text = "✕"
+ccClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+ccClose.TextSize = 14
+ccClose.Font = Enum.Font.SourceSansBold
+ccClose.Parent = codeCreatorFrame
+
+local ccCloseCorner = Instance.new("UICorner")
+ccCloseCorner.CornerRadius = UDim.new(0, 4)
+ccCloseCorner.Parent = ccClose
+
+ccClose.MouseButton1Click:Connect(function()
+    playClickSound()
+    codeCreatorFrame.Visible = false
+end)
+
+codesMenuBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    codeCreatorFrame.Visible = not codeCreatorFrame.Visible
+end)
+
+local customCodeBox = Instance.new("TextBox")
+customCodeBox.Size = UDim2.new(0, 216, 0, 32)
+customCodeBox.Position = UDim2.new(0, 12, 0, 45)
+customCodeBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+customCodeBox.BorderSizePixel = 0
+customCodeBox.PlaceholderText = "Escribe el nombre del código..."
+customCodeBox.Text = ""
+customCodeBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+customCodeBox.TextSize = 12
+customCodeBox.Font = Enum.Font.SourceSans
+customCodeBox.Parent = codeCreatorFrame
+
+local ccbCorner = Instance.new("UICorner")
+ccbCorner.CornerRadius = UDim.new(0, 6)
+ccbCorner.Parent = customCodeBox
+
+local existingCodesBox = Instance.new("TextBox")
+existingCodesBox.Size = UDim2.new(0, 216, 0, 32)
+existingCodesBox.Position = UDim2.new(0, 12, 0, 85)
+existingCodesBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+existingCodesBox.BorderSizePixel = 0
+existingCodesBox.PlaceholderText = "Solo números (ej. 12345)..."
+existingCodesBox.Text = ""
+existingCodesBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+existingCodesBox.TextSize = 12
+existingCodesBox.Font = Enum.Font.SourceSans
+existingCodesBox.Parent = codeCreatorFrame
+
+local ecbCorner = Instance.new("UICorner")
+ecbCorner.CornerRadius = UDim.new(0, 6)
+ecbCorner.Parent = existingCodesBox
+
+existingCodesBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local filtered = existingCodesBox.Text:gsub("%D", "")
+    if filtered ~= existingCodesBox.Text then
+        existingCodesBox.Text = filtered
+    end
+end)
+
+local itemsDropdownBtn = Instance.new("TextButton")
+itemsDropdownBtn.Size = UDim2.new(0, 216, 0, 32)
+itemsDropdownBtn.Position = UDim2.new(0, 12, 0, 125)
+itemsDropdownBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+itemsDropdownBtn.BorderSizePixel = 0
+itemsDropdownBtn.Text = "📦 Cosas Para Code (0)"
+itemsDropdownBtn.TextColor3 = Color3.fromRGB(200, 220, 255)
+itemsDropdownBtn.TextSize = 12
+itemsDropdownBtn.Font = Enum.Font.SourceSansBold
+itemsDropdownBtn.Parent = codeCreatorFrame
+
+local idbCorner = Instance.new("UICorner")
+idbCorner.CornerRadius = UDim.new(0, 6)
+idbCorner.Parent = itemsDropdownBtn
+
+local itemsListFrame = Instance.new("ScrollingFrame")
+itemsListFrame.Size = UDim2.new(0, 216, 0, 120)
+itemsListFrame.Position = UDim2.new(0, 12, 0, 162)
+itemsListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+itemsListFrame.BorderSizePixel = 0
+itemsListFrame.Visible = false
+itemsListFrame.ScrollBarThickness = 4
+itemsListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+itemsListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+itemsListFrame.Parent = codeCreatorFrame
+
+local ilfCorner = Instance.new("UICorner")
+ilfCorner.CornerRadius = UDim.new(0, 6)
+ilfCorner.Parent = itemsListFrame
+
+local ilfLayout = Instance.new("UIListLayout")
+ilfLayout.Padding = UDim.new(0, 3)
+ilfLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ilfLayout.Parent = itemsListFrame
+
+local codeItems = {
+    "Rpg Calabaza", "Rpg-7", "LANZAPAPAS", "MINIGUN", "Barret x4", 
+    "Ejercito CFEs", "Paquete de armas: EL PATRON", "[🏆] V.I.P.", 
+    "[⭐️] Emotes", "M249 | Pesada", "Paquete de ARMAS CLASICAS", 
+    "Paquete de armas ANIME", "[🔥💎] AKM Plumas Doradas", 
+    "M16A2 GL | MONTANA", "Barret - M82", "ARMAS DORADAS", 
+    "AK - 47 | DORADA", "M249MOD DORADA", "[👁] VISION NOCTURNA", 
+    "Dinero", "Calaveritas"
+}
+local selectedCodeItems = {}
+
+local amountPromptFrame = Instance.new("Frame")
+amountPromptFrame.Size = UDim2.new(0, 220, 0, 130)
+amountPromptFrame.Position = UDim2.new(0.5, -110, 0.4, 0)
+amountPromptFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+amountPromptFrame.BorderSizePixel = 0
+amountPromptFrame.Visible = false
+amountPromptFrame.Active = true
+amountPromptFrame.Draggable = true
+amountPromptFrame.Parent = screenGui
+
+local apfCorner = Instance.new("UICorner")
+apfCorner.CornerRadius = UDim.new(0, 8)
+apfCorner.Parent = amountPromptFrame
+
+local apfStroke = Instance.new("UIStroke")
+apfStroke.Thickness = 1.5
+apfStroke.Color = Color3.fromRGB(100, 200, 100)
+apfStroke.Parent = amountPromptFrame
+
+local apfTitle = Instance.new("TextLabel")
+apfTitle.Size = UDim2.new(1, -10, 0, 30)
+apfTitle.Position = UDim2.new(0, 5, 0, 5)
+apfTitle.BackgroundTransparency = 1
+apfTitle.Text = "Elegir Cantidad"
+apfTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+apfTitle.TextSize = 12
+apfTitle.Font = Enum.Font.SourceSansBold
+apfTitle.Parent = amountPromptFrame
+
+local amountTextBox = Instance.new("TextBox")
+amountTextBox.Size = UDim2.new(1, -20, 0, 35)
+amountTextBox.Position = UDim2.new(0, 10, 0, 40)
+amountTextBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+amountTextBox.BorderSizePixel = 0
+amountTextBox.PlaceholderText = "Introduce número..."
+amountTextBox.Text = ""
+amountTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+amountTextBox.TextSize = 12
+amountTextBox.Font = Enum.Font.SourceSans
+amountTextBox.Parent = amountPromptFrame
+
+local atbCorner = Instance.new("UICorner")
+atbCorner.CornerRadius = UDim.new(0, 6)
+atbCorner.Parent = amountTextBox
+
+amountTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local filtered = amountTextBox.Text:gsub("%D", "")
+    if filtered ~= amountTextBox.Text then
+        amountTextBox.Text = filtered
+    end
+end)
+
+local listoBtn = Instance.new("TextButton")
+listoBtn.Size = UDim2.new(1, -20, 0, 32)
+listoBtn.Position = UDim2.new(0, 10, 0, 82)
+listoBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 60)
+listoBtn.BorderSizePixel = 0
+listoBtn.Text = "Listo"
+listoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+listoBtn.TextSize = 12
+listoBtn.Font = Enum.Font.SourceSansBold
+listoBtn.Parent = amountPromptFrame
+
+local listoCorner = Instance.new("UICorner")
+listoCorner.CornerRadius = UDim.new(0, 6)
+listoCorner.Parent = listoBtn
+
+local activeSelectedType = nil
+
+local function updateCodeItemsButton()
+    local count = 0
+    for _, selected in pairs(selectedCodeItems) do
+        if selected then count = count + 1 end
+    end
+    itemsDropdownBtn.Text = string.format("📦 Cosas Para Code (%d)", count)
+end
+
+for _, itemName in ipairs(codeItems) do
+    local itemBtn = Instance.new("TextButton")
+    itemBtn.Size = UDim2.new(1, -6, 0, 26)
+    itemBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    itemBtn.BorderSizePixel = 0
+    itemBtn.Text = itemName
+    itemBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    itemBtn.TextSize = 11
+    itemBtn.Font = Enum.Font.SourceSans
+    itemBtn.Parent = itemsListFrame
+
+    local ibCorner = Instance.new("UICorner")
+    ibCorner.CornerRadius = UDim.new(0, 4)
+    ibCorner.Parent = itemBtn
+
+    itemBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        selectedCodeItems[itemName] = not selectedCodeItems[itemName]
+        
+        if selectedCodeItems[itemName] then
+            itemBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 60)
+        else
+            itemBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        end
+        updateCodeItemsButton()
+
+        if itemName == "Dinero" or itemName == "Calaveritas" then
+            if selectedCodeItems[itemName] then
+                activeSelectedType = itemName
+                apfTitle.Text = "Elegir Cantidad de " .. itemName
+                amountTextBox.Text = ""
+                amountPromptFrame.Visible = true
+            end
+        end
+    end)
+end
+
+itemsDropdownBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    itemsListFrame.Visible = not itemsListFrame.Visible
+end)
+
+local createCodeActionBtn = Instance.new("TextButton")
+createCodeActionBtn.Size = UDim2.new(0, 216, 0, 35)
+createCodeActionBtn.Position = UDim2.new(0, 12, 0, 265)
+createCodeActionBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 60)
+createCodeActionBtn.BorderSizePixel = 0
+createCodeActionBtn.Text = "✨ Crear Código"
+createCodeActionBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+createCodeActionBtn.TextSize = 12
+createCodeActionBtn.Font = Enum.Font.SourceSansBold
+createCodeActionBtn.Parent = codeCreatorFrame
+
+-- =========================================================================
+-- CENTRO DE MENSAJES
+-- =========================================================================
+
+local messagesFrame = Instance.new("Frame")
+messagesFrame.Name = "MessagesFrame"
+messagesFrame.Size = UDim2.new(0, 240, 0, 410)
+messagesFrame.Position = UDim2.new(0.4, 0, 0.2, 0)
+messagesFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+messagesFrame.BorderSizePixel = 0
+messagesFrame.Active = true
+messagesFrame.Draggable = true
+messagesFrame.Visible = false
+messagesFrame.Parent = screenGui
+
+local mfCorner = Instance.new("UICorner")
+mfCorner.CornerRadius = UDim.new(0, 8)
+mfCorner.Parent = messagesFrame
+
+local mfStroke = Instance.new("UIStroke")
+mfStroke.Thickness = 2
+mfStroke.Color = Color3.fromRGB(150, 220, 255)
+mfStroke.Parent = messagesFrame
+
+local mfTitle = Instance.new("TextLabel")
+mfTitle.Size = UDim2.new(1, -40, 0, 35)
+mfTitle.Position = UDim2.new(0, 10, 0, 0)
+mfTitle.BackgroundTransparency = 1
+mfTitle.Text = "💬 Centro de Mensajes"
+mfTitle.TextColor3 = Color3.fromRGB(150, 220, 255)
+mfTitle.TextSize = 13
+mfTitle.Font = Enum.Font.SourceSansBold
+mfTitle.TextXAlignment = Enum.TextXAlignment.Left
+mfTitle.Parent = messagesFrame
+
+local mfClose = Instance.new("TextButton")
+mfClose.Size = UDim2.new(0, 22, 0, 22)
+mfClose.Position = UDim2.new(1, -28, 0, 6.5)
+mfClose.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+mfClose.BorderSizePixel = 0
+mfClose.Text = "✕"
+mfClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+mfClose.TextSize = 14
+mfClose.Font = Enum.Font.SourceSansBold
+mfClose.Parent = messagesFrame
+
+local mfCloseCorner = Instance.new("UICorner")
+mfCloseCorner.CornerRadius = UDim.new(0, 4)
+mfCloseCorner.Parent = mfClose
+
+mfClose.MouseButton1Click:Connect(function()
+    playClickSound()
+    messagesFrame.Visible = false
+end)
+
+messagesMenuBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    messagesFrame.Visible = not messagesFrame.Visible
+end)
+
+local globalMsgBox = Instance.new("TextBox")
+globalMsgBox.Size = UDim2.new(0, 216, 0, 32)
+globalMsgBox.Position = UDim2.new(0, 12, 0, 42)
+globalMsgBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+globalMsgBox.BorderSizePixel = 0
+globalMsgBox.PlaceholderText = "Escribir mensaje global etc..."
+globalMsgBox.Text = ""
+globalMsgBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+globalMsgBox.TextSize = 12
+globalMsgBox.Font = Enum.Font.SourceSans
+globalMsgBox.Parent = messagesFrame
+
+local gmbCorner = Instance.new("UICorner")
+gmbCorner.CornerRadius = UDim.new(0, 6)
+gmbCorner.Parent = globalMsgBox
+
+local function createAdvancedColorPicker(parentFrame, posY, onColorApplied)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(0, 216, 0, 65)
+    container.Position = UDim2.new(0, 12, 0, posY)
+    container.BackgroundTransparency = 1
+    container.Parent = parentFrame
+
+    local colorBox = Instance.new("Frame")
+    colorBox.Size = UDim2.new(0, 130, 0, 24)
+    colorBox.Position = UDim2.new(0, 0, 0, 0)
+    colorBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    colorBox.BorderSizePixel = 0
+    colorBox.Parent = container
+
+    local cbCorner = Instance.new("UICorner")
+    cbCorner.CornerRadius = UDim.new(0, 4)
+    cbCorner.Parent = colorBox
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.15, Color3.fromRGB(255, 0, 0)),
+        ColorSequenceKeypoint.new(0.30, Color3.fromRGB(255, 255, 0)),
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(0, 255, 0)),
+        ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 255, 255)),
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 0, 255)),
+        ColorSequenceKeypoint.new(0.90, Color3.fromRGB(255, 0, 255)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255))
+    })
+    gradient.Parent = colorBox
+
+    local whiteSelector = Instance.new("Frame")
+    whiteSelector.Size = UDim2.new(0, 14, 0, 14)
+    whiteSelector.AnchorPoint = Vector2.new(0.5, 0.5)
+    whiteSelector.Position = UDim2.new(0, 7, 0.5, 0)
+    whiteSelector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    whiteSelector.BorderSizePixel = 0
+    whiteSelector.Parent = colorBox
+
+    local wsCorner = Instance.new("UICorner")
+    wsCorner.CornerRadius = UDim.new(1, 0)
+    whiteSelector.Parent = colorBox
+
+    local wsStroke = Instance.new("UIStroke")
+    wsStroke.Thickness = 1.5
+    wsStroke.Color = Color3.fromRGB(0, 0, 0)
+    wsStroke.Parent = whiteSelector
+
+    local cancelBtn = Instance.new("TextButton")
+    cancelBtn.Size = UDim2.new(0, 40, 0, 24)
+    cancelBtn.Position = UDim2.new(0, 134, 0, 0)
+    cancelBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
+    cancelBtn.BorderSizePixel = 0
+    cancelBtn.Text = "Cancelar"
+    cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cancelBtn.TextSize = 9
+    cancelBtn.Font = Enum.Font.SourceSansBold
+    cancelBtn.Parent = container
+
+    local cbCorner2 = Instance.new("UICorner")
+    cbCorner2.CornerRadius = UDim.new(0, 4)
+    cancelBtn.Parent = container
+
+    local listoColBtn = Instance.new("TextButton")
+    listoColBtn.Size = UDim2.new(0, 40, 0, 24)
+    listoColBtn.Position = UDim2.new(0, 178, 0, 0)
+    listoColBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 60)
+    listoColBtn.BorderSizePixel = 0
+    listoColBtn.Text = "Listo"
+    listoColBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    listoColBtn.TextSize = 9
+    listoColBtn.Font = Enum.Font.SourceSansBold
+    listoColBtn.Parent = container
+
+    local lcbCorner = Instance.new("UICorner")
+    lcbCorner.CornerRadius = UDim.new(0, 4)
+    listoColBtn.Parent = container
+
+    local previewLabel = Instance.new("TextLabel")
+    previewLabel.Size = UDim2.new(1, 0, 0, 28)
+    previewLabel.Position = UDim2.new(0, 0, 0, 32)
+    previewLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    previewLabel.BorderSizePixel = 0
+    previewLabel.Text = "Color seleccionado"
+    previewLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    previewLabel.TextSize = 10
+    previewLabel.Font = Enum.Font.SourceSansBold
+    previewLabel.Parent = container
+
+    local plCorner = Instance.new("UICorner")
+    plCorner.CornerRadius = UDim.new(0, 4)
+    previewLabel.Parent = container
+
+    local currentColor = Color3.fromRGB(255, 255, 255)
+    local draggingColor = false
+
+    local function updateColorFromInput(inputX)
+        local absolutePos = colorBox.AbsolutePosition.X
+        local absoluteSize = colorBox.AbsoluteSize.X
+        local relativeX = math.clamp(inputX - absolutePos, 0, absoluteSize)
+        whiteSelector.Position = UDim2.new(0, relativeX, 0.5, 0)
+
+        local alpha = relativeX / absoluteSize
+        local keypoints = gradient.Color.Keypoints
+        for i = 1, #keypoints - 1 do
+            local kp1 = keypoints[i]
+            local kp2 = keypoints[i+1]
+            if alpha >= kp1.Time and alpha <= kp2.Time then
+                local localAlpha = (alpha - kp1.Time) / (kp2.Time - kp1.Time)
+                currentColor = kp1.Value:Lerp(kp2.Value, localAlpha)
+                break
+            end
+        end
+        previewLabel.TextColor3 = currentColor
+    end
+
+    colorBox.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingColor = true
+            parentFrame.Draggable = false
+            updateColorFromInput(input.Position.X)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if draggingColor and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateColorFromInput(input.Position.X)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if draggingColor then
+                draggingColor = false
+                parentFrame.Draggable = true
+            end
+        end
+    end)
+
+    cancelBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        currentColor = Color3.fromRGB(255, 255, 255)
+        whiteSelector.Position = UDim2.new(0, 7, 0.5, 0)
+        previewLabel.TextColor3 = currentColor
+        onColorApplied(currentColor)
+    end)
+
+    listoColBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        onColorApplied(currentColor)
+    end)
+end
+
+local selectedMsgColor = Color3.fromRGB(255, 255, 255)
+createAdvancedColorPicker(messagesFrame, 78, function(col)
+    selectedMsgColor = col
+    globalMsgBox.TextColor3 = col
+end)
+
+local globalBtn = Instance.new("TextButton")
+globalBtn.Size = UDim2.new(0, 105, 0, 28)
+globalBtn.Position = UDim2.new(0, 12, 0, 150)
+globalBtn.BackgroundColor3 = Color3.fromRGB(40, 100, 160)
+globalBtn.BorderSizePixel = 0
+globalBtn.Text = "Mensaje Global"
+globalBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+globalBtn.TextSize = 11
+globalBtn.Font = Enum.Font.SourceSansBold
+globalBtn.Parent = messagesFrame
+
+local gbCorner = Instance.new("UICorner")
+gbCorner.CornerRadius = UDim.new(0, 6)
+gbCorner.Parent = globalBtn
+
+local serverBtn = Instance.new("TextButton")
+serverBtn.Size = UDim2.new(0, 105, 0, 28)
+serverBtn.Position = UDim2.new(0, 123, 0, 150)
+serverBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 160)
+serverBtn.BorderSizePixel = 0
+serverBtn.Text = "En Este Servidor"
+serverBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+serverBtn.TextSize = 11
+serverBtn.Font = Enum.Font.SourceSansBold
+serverBtn.Parent = messagesFrame
+
+local sbCorner = Instance.new("UICorner")
+sbCorner.CornerRadius = UDim.new(0, 6)
+sbCorner.Parent = serverBtn
+
+local randomUserBox = Instance.new("TextBox")
+randomUserBox.Size = UDim2.new(0, 216, 0, 32)
+randomUserBox.Position = UDim2.new(0, 12, 0, 185)
+randomUserBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+randomUserBox.BorderSizePixel = 0
+randomUserBox.PlaceholderText = "Usuario random..."
+randomUserBox.Text = ""
+randomUserBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+randomUserBox.TextSize = 12
+randomUserBox.Font = Enum.Font.SourceSans
+randomUserBox.Parent = messagesFrame
+
+local rubCorner = Instance.new("UICorner")
+rubCorner.CornerRadius = UDim.new(0, 6)
+rubCorner.Parent = randomUserBox
+
+local sendUserBtn = Instance.new("TextButton")
+sendUserBtn.Size = UDim2.new(0, 216, 0, 32)
+sendUserBtn.Position = UDim2.new(0, 12, 0, 222)
+sendUserBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 80)
+sendUserBtn.BorderSizePixel = 0
+sendUserBtn.Text = "Enviar Mensaje Usuario"
+sendUserBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+sendUserBtn.TextSize = 11
+sendUserBtn.Font = Enum.Font.SourceSansBold
+sendUserBtn.Parent = messagesFrame
+
+local subCorner = Instance.new("UICorner")
+subCorner.CornerRadius = UDim.new(0, 6)
+subCorner.Parent = sendUserBtn
+
+local selectedMsgTagIndex = nil 
+local messageTagBtn = Instance.new("TextButton")
+messageTagBtn.Size = UDim2.new(0, 216, 0, 30)
+messageTagBtn.Position = UDim2.new(0, 12, 0, 260)
+messageTagBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+messageTagBtn.BorderSizePixel = 0
+messageTagBtn.Text = "Tags: Ninguna"
+messageTagBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+messageTagBtn.TextSize = 11
+messageTagBtn.Font = Enum.Font.SourceSansBold
+messageTagBtn.Parent = messagesFrame
+
+local mtbCorner = Instance.new("UICorner")
+mtbCorner.CornerRadius = UDim.new(0, 6)
+mtbCorner.Parent = messageTagBtn
+
+messageTagBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    if selectedMsgTagIndex == nil then
+        selectedMsgTagIndex = 1
+    else
+        selectedMsgTagIndex = selectedMsgTagIndex + 1
+        if selectedMsgTagIndex > #TAG_CONFIGS then
+            selectedMsgTagIndex = nil
+        end
+    end
+
+    if selectedMsgTagIndex == nil then
+        messageTagBtn.Text = "Tags: Ninguna"
+        messageTagBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    else
+        local config = TAG_CONFIGS[selectedMsgTagIndex]
+        messageTagBtn.Text = "Tags: " .. config.Text
+        messageTagBtn.TextColor3 = config.TextColor
+    end
+end)
+
+local customTitleBox = Instance.new("TextBox")
+customTitleBox.Size = UDim2.new(0, 216, 0, 32)
+customTitleBox.Position = UDim2.new(0, 12, 0, 296)
+customTitleBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+customTitleBox.BorderSizePixel = 0
+customTitleBox.PlaceholderText = "poner cualquier cosa... (ej. Ghost)"
+customTitleBox.Text = ""
+customTitleBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+customTitleBox.TextSize = 12
+customTitleBox.Font = Enum.Font.SourceSans
+customTitleBox.Parent = messagesFrame
+
+local ctbCorner = Instance.new("UICorner")
+ctbCorner.CornerRadius = UDim.new(0, 6)
+ctbCorner.Parent = customTitleBox
+
+local selectedTitleColor = Color3.fromRGB(255, 255, 255)
+createAdvancedColorPicker(messagesFrame, 332, function(col)
+    selectedTitleColor = col
+    customTitleBox.TextColor3 = col
+    customTitleLabel.TextColor3 = col
+end)
+
+randomUserBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local uName = randomUserBox.Text
+    if uName == "" then
+        sendUserBtn.Text = "Enviar Mensaje Usuario"
+    else
+        sendUserBtn.Text = string.format('Enviar Mensaje Usuario "%s"', uName)
+    end
+end)
+
+-- =========================================================================
+-- CENTRO DE VOTACIONES
+-- =========================================================================
+
+local pollFrame = Instance.new("Frame")
+pollFrame.Name = "PollFrame"
+pollFrame.Size = UDim2.new(0, 240, 0, 300)
+pollFrame.Position = UDim2.new(0.4, 0, 0.22, 0)
+pollFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+pollFrame.BorderSizePixel = 0
+pollFrame.Active = true
+pollFrame.Draggable = true
+pollFrame.Visible = false
+pollFrame.Parent = screenGui
+
+local plCorner = Instance.new("UICorner")
+plCorner.CornerRadius = UDim.new(0, 8)
+plCorner.Parent = pollFrame
+
+local plStroke = Instance.new("UIStroke")
+plStroke.Thickness = 2
+plStroke.Color = Color3.fromRGB(255, 200, 100)
+plStroke.Parent = pollFrame
+
+local plTitle = Instance.new("TextLabel")
+plTitle.Size = UDim2.new(1, -40, 0, 35)
+plTitle.Position = UDim2.new(0, 10, 0, 0)
+plTitle.BackgroundTransparency = 1
+plTitle.Text = "📊 Creador de Votaciones"
+plTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
+plTitle.TextSize = 13
+plTitle.Font = Enum.Font.SourceSansBold
+plTitle.TextXAlignment = Enum.TextXAlignment.Left
+plTitle.Parent = pollFrame
+
+local plClose = Instance.new("TextButton")
+plClose.Size = UDim2.new(0, 22, 0, 22)
+plClose.Position = UDim2.new(1, -28, 0, 6.5)
+plClose.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+plClose.BorderSizePixel = 0
+plClose.Text = "✕"
+plClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+plClose.TextSize = 14
+plClose.Font = Enum.Font.SourceSansBold
+plClose.Parent = pollFrame
+
+local plCloseCorner = Instance.new("UICorner")
+plCloseCorner.CornerRadius = UDim.new(0, 4)
+plCloseCorner.Parent = plClose
+
+plClose.MouseButton1Click:Connect(function()
+    playClickSound()
+    pollFrame.Visible = false
+end)
+
+pollMenuBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    pollFrame.Visible = not pollFrame.Visible
+end)
+
+local pollQuestionBox = Instance.new("TextBox")
+pollQuestionBox.Size = UDim2.new(0, 216, 0, 32)
+pollQuestionBox.Position = UDim2.new(0, 12, 0, 40)
+pollQuestionBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+pollQuestionBox.BorderSizePixel = 0
+pollQuestionBox.PlaceholderText = "Escribe la pregunta de votación..."
+pollQuestionBox.Text = ""
+pollQuestionBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+pollQuestionBox.TextSize = 11
+pollQuestionBox.Font = Enum.Font.SourceSans
+pollQuestionBox.Parent = pollFrame
+
+local pqCorner = Instance.new("UICorner")
+pqCorner.CornerRadius = UDim.new(0, 6)
+pqCorner.Parent = pollQuestionBox
+
+local optionLeftBox = Instance.new("TextBox")
+optionLeftBox.Size = UDim2.new(0, 103, 0, 30)
+optionLeftBox.Position = UDim2.new(0, 12, 0, 78)
+optionLeftBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+optionLeftBox.BorderSizePixel = 0
+optionLeftBox.PlaceholderText = "Opción 1..."
+optionLeftBox.Text = ""
+optionLeftBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+optionLeftBox.TextSize = 11
+optionLeftBox.Font = Enum.Font.SourceSans
+optionLeftBox.Parent = pollFrame
+
+local olCorner = Instance.new("UICorner")
+olCorner.CornerRadius = UDim.new(0, 6)
+olCorner.Parent = optionLeftBox
+
+local optionRightBox = Instance.new("TextBox")
+optionRightBox.Size = UDim2.new(0, 105, 0, 30)
+optionRightBox.Position = UDim2.new(0, 123, 0, 78)
+optionRightBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+optionRightBox.BorderSizePixel = 0
+optionRightBox.PlaceholderText = "Opción 2..."
+optionRightBox.Text = ""
+optionRightBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+optionRightBox.TextSize = 11
+optionRightBox.Font = Enum.Font.SourceSans
+optionRightBox.Parent = pollFrame
+
+local orCorner = Instance.new("UICorner")
+orCorner.CornerRadius = UDim.new(0, 6)
+orCorner.Parent = optionRightBox
+
+local pollTimeBox = Instance.new("TextBox")
+pollTimeBox.Size = UDim2.new(0, 216, 0, 30)
+pollTimeBox.Position = UDim2.new(0, 12, 0, 114)
+pollTimeBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+pollTimeBox.BorderSizePixel = 0
+pollTimeBox.PlaceholderText = "Duración en segundos (ej. 10)..."
+pollTimeBox.Text = ""
+pollTimeBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+pollTimeBox.TextSize = 11
+pollTimeBox.Font = Enum.Font.SourceSans
+pollTimeBox.Parent = pollFrame
+
+local ptCorner = Instance.new("UICorner")
+ptCorner.CornerRadius = UDim.new(0, 6)
+ptCorner.Parent = pollTimeBox
+
+pollTimeBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local filtered = pollTimeBox.Text:gsub("%D", "")
+    if filtered ~= pollTimeBox.Text then
+        pollTimeBox.Text = filtered
+    end
+end)
+
+local baseVotersBox = Instance.new("TextBox")
+baseVotersBox.Size = UDim2.new(0, 216, 0, 30)
+baseVotersBox.Position = UDim2.new(0, 12, 0, 150)
+baseVotersBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+baseVotersBox.BorderSizePixel = 0
+baseVotersBox.PlaceholderText = "Cantidad de personas que votaron (ej. 30)..."
+baseVotersBox.Text = ""
+baseVotersBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+baseVotersBox.TextSize = 10
+baseVotersBox.Font = Enum.Font.SourceSans
+baseVotersBox.Parent = pollFrame
+
+local bvCorner = Instance.new("UICorner")
+bvCorner.CornerRadius = UDim.new(0, 6)
+bvCorner.Parent = baseVotersBox
+
+baseVotersBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local filtered = baseVotersBox.Text:gsub("%D", "")
+    if filtered ~= baseVotersBox.Text then
+        baseVotersBox.Text = filtered
+    end
+end)
+
+local sendPollGlobalBtn = Instance.new("TextButton")
+sendPollGlobalBtn.Size = UDim2.new(0, 103, 0, 28)
+sendPollGlobalBtn.Position = UDim2.new(0, 12, 0, 186)
+sendPollGlobalBtn.BackgroundColor3 = Color3.fromRGB(180, 100, 30)
+sendPollGlobalBtn.BorderSizePixel = 0
+sendPollGlobalBtn.Text = "Votación Global"
+sendPollGlobalBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+sendPollGlobalBtn.TextSize = 10
+sendPollGlobalBtn.Font = Enum.Font.SourceSansBold
+sendPollGlobalBtn.Parent = pollFrame
+
+local spgCorner = Instance.new("UICorner")
+spgCorner.CornerRadius = UDim.new(0, 6)
+spgCorner.Parent = sendPollGlobalBtn
+
+local sendPollServerBtn = Instance.new("TextButton")
+sendPollServerBtn.Size = UDim2.new(0, 105, 0, 28)
+sendPollServerBtn.Position = UDim2.new(0, 123, 0, 186)
+sendPollServerBtn.BackgroundColor3 = Color3.fromRGB(140, 60, 140)
+sendPollServerBtn.BorderSizePixel = 0
+sendPollServerBtn.Text = "En Este Servidor"
+sendPollServerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+sendPollServerBtn.TextSize = 10
+sendPollServerBtn.Font = Enum.Font.SourceSansBold
+sendPollServerBtn.Parent = pollFrame
+
+local spsCorner = Instance.new("UICorner")
+spsCorner.CornerRadius = UDim.new(0, 6)
+spsCorner.Parent = sendPollServerBtn
+
+local sendPollUserBtn = Instance.new("TextButton")
+sendPollUserBtn.Size = UDim2.new(0, 216, 0, 30)
+sendPollUserBtn.Position = UDim2.new(0, 12, 0, 220)
+sendPollUserBtn.BackgroundColor3 = Color3.fromRGB(40, 140, 80)
+sendPollUserBtn.BorderSizePixel = 0
+sendPollUserBtn.Text = "Enviar Usuario Random"
+sendPollUserBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+sendPollUserBtn.TextSize = 11
+sendPollUserBtn.Font = Enum.Font.SourceSansBold
+sendPollUserBtn.Parent = pollFrame
+
+local spuCorner = Instance.new("UICorner")
+spuCorner.CornerRadius = UDim.new(0, 6)
+spuCorner.Parent = sendPollUserBtn
+
+-- =========================================================================
+-- TARJETA DE VOTACIÓN FLOTANTE Y PANTALLA GANADOR
+-- =========================================================================
+
+local activePollCard = Instance.new("Frame")
+activePollCard.Name = "ActivePollCard"
+activePollCard.Size = UDim2.new(0, 280, 0, 130)
+activePollCard.Position = UDim2.new(1, -290, 0, 20)
+activePollCard.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+activePollCard.BorderSizePixel = 0
+activePollCard.Visible = false
+activePollCard.Parent = screenGui
+
+local apcCorner = Instance.new("UICorner")
+apcCorner.CornerRadius = UDim.new(0, 10)
+apcCorner.Parent = activePollCard
+
+local apcStroke = Instance.new("UIStroke")
+apcStroke.Thickness = 2
+apcStroke.Color = Color3.fromRGB(255, 200, 100)
+apcStroke.Parent = activePollCard
+
+local apcQuestion = Instance.new("TextLabel")
+apcQuestion.Size = UDim2.new(1, -60, 0, 35)
+apcQuestion.Position = UDim2.new(0, 10, 0, 5)
+apcQuestion.BackgroundTransparency = 1
+apcQuestion.Text = "¿Pregunta?"
+apcQuestion.TextColor3 = Color3.fromRGB(255, 255, 255)
+apcQuestion.TextSize = 13
+apcQuestion.Font = Enum.Font.SourceSansBold
+apcQuestion.TextXAlignment = Enum.TextXAlignment.Left
+apcQuestion.TextWrapped = true
+apcQuestion.Parent = activePollCard
+
+local apcTimer = Instance.new("TextLabel")
+apcTimer.Size = UDim2.new(0, 50, 0, 25)
+apcTimer.Position = UDim2.new(1, -55, 0, 5)
+apcTimer.BackgroundTransparency = 1
+apcTimer.Text = "10s"
+apcTimer.TextColor3 = Color3.fromRGB(255, 200, 100)
+apcTimer.TextSize = 14
+apcTimer.Font = Enum.Font.SourceSansBold
+apcTimer.Parent = activePollCard
+
+local btnOpt1 = Instance.new("TextButton")
+btnOpt1.Size = UDim2.new(0, 125, 0, 35)
+btnOpt1.Position = UDim2.new(0, 10, 0, 45)
+btnOpt1.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+btnOpt1.BorderSizePixel = 0
+btnOpt1.Text = "Opción 1 (0)"
+btnOpt1.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnOpt1.TextSize = 11
+btnOpt1.Font = Enum.Font.SourceSansBold
+btnOpt1.Parent = activePollCard
+
+local b1Corner = Instance.new("UICorner")
+b1Corner.CornerRadius = UDim.new(0, 6)
+b1Corner.Parent = btnOpt1
+
+local btnOpt2 = Instance.new("TextButton")
+btnOpt2.Size = UDim2.new(0, 125, 0, 35)
+btnOpt2.Position = UDim2.new(0, 145, 0, 45)
+btnOpt2.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+btnOpt2.BorderSizePixel = 0
+btnOpt2.Text = "Opción 2 (0)"
+btnOpt2.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnOpt2.TextSize = 11
+btnOpt2.Font = Enum.Font.SourceSansBold
+btnOpt2.Parent = activePollCard
+
+local b2Corner = Instance.new("UICorner")
+b2Corner.CornerRadius = UDim.new(0, 6)
+b2Corner.Parent = btnOpt2
+
+local darkOverlay = Instance.new("Frame")
+darkOverlay.Size = UDim2.new(1, 0, 1, 0)
+darkOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+darkOverlay.BackgroundTransparency = 0.5
+darkOverlay.Visible = false
+darkOverlay.ZIndex = 10
+darkOverlay.Parent = screenGui
+
+local winnerLabel = Instance.new("TextLabel")
+winnerLabel.Size = UDim2.new(1, 0, 0, 100)
+winnerLabel.Position = UDim2.new(0, 0, 0.45, 0)
+winnerLabel.BackgroundTransparency = 1
+winnerLabel.Text = "!Ha Ganado Opción!"
+winnerLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+winnerLabel.TextSize = 28
+winnerLabel.Font = Enum.Font.SourceSansBold
+winnerLabel.ZIndex = 11
+winnerLabel.Parent = darkOverlay
+
+local winnerStroke = Instance.new("UIStroke")
+winnerStroke.Thickness = 2
+winnerStroke.Color = Color3.fromRGB(0, 0, 0)
+winnerStroke.Parent = winnerLabel
+
+local currentPollThread = nil
+
+local function startPollDisplay()
+    local notifSound = Instance.new("Sound")
+    notifSound.SoundId = "rbxassetid://17208361335"
+    notifSound.Volume = 1.0
+    notifSound.Parent = screenGui
+    notifSound:Play()
+    notifSound.Ended:Connect(function() notifSound:Destroy() end)
+
+    local qText = pollQuestionBox.Text ~= "" and pollQuestionBox.Text or "¿Qué prefieres?"
+    local o1Text = optionLeftBox.Text ~= "" and optionLeftBox.Text or "Opción A"
+    local o2Text = optionRightBox.Text ~= "" and optionRightBox.Text or "Opción B"
+    local totalSeconds = tonumber(pollTimeBox.Text) or 10
+    local baseCount = tonumber(baseVotersBox.Text) or 0
+
+    local count1 = baseCount
+    local count2 = 0
+
+    apcQuestion.Text = qText
+    btnOpt1.Text = string.format("%s (%d)", o1Text, count1)
+    btnOpt2.Text = string.format("%s (%d)", o2Text, count2)
+    apcTimer.Text = totalSeconds .. "s"
+    activePollCard.Visible = true
+
+    local connection1, connection2
+
+    connection1 = btnOpt1.MouseButton1Click:Connect(function()
+        playClickSound()
+        count1 = count1 + 1
+        btnOpt1.Text = string.format("%s (%d)", o1Text, count1)
+    end)
+
+    connection2 = btnOpt2.MouseButton1Click:Connect(function()
+        playClickSound()
+        count2 = count2 + 1
+        btnOpt2.Text = string.format("%s (%d)", o2Text, count2)
+    end)
+
+    if currentPollThread then task.cancel(currentPollThread) end
+
+    currentPollThread = task.spawn(function()
+        for s = totalSeconds, 0, -1 do
+            apcTimer.Text = s .. "s"
+            task.wait(1)
+        end
+
+        connection1:Disconnect()
+        connection2:Disconnect()
+        activePollCard.Visible = false
+
+        local winningOption = o1Text
+        if count2 > count1 then
+            winningOption = o2Text
+        elseif count1 == count2 then
+            winningOption = o1Text .. " y " .. o2Text
+        end
+
+        winnerLabel.Text = string.format('!Ha Ganado "%s"!', winningOption)
+        darkOverlay.Visible = true
+
+        task.wait(5)
+        darkOverlay.Visible = false
+    end)
+end
+
+sendPollGlobalBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    startPollDisplay()
+end)
+
+sendPollServerBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    startPollDisplay()
+end)
+
+sendPollUserBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    startPollDisplay()
+end)
+
+-- =========================================================================
+-- TARJETA DE NOTIFICACIÓN DE MENSAJES SUPERIOR
+-- =========================================================================
+
+local profileCard = Instance.new("Frame")
+profileCard.Size = UDim2.new(0, 380, 0, 95)
+profileCard.AnchorPoint = Vector2.new(0.5, 0)
+profileCard.Position = UDim2.new(0.5, 0, 0, -110)
+profileCard.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+profileCard.BorderSizePixel = 0
+profileCard.Visible = false
+profileCard.Parent = screenGui
+
+local pcCorner = Instance.new("UICorner")
+pcCorner.CornerRadius = UDim.new(0, 12)
+pcCorner.Parent = profileCard
+
+local pcStroke = Instance.new("UIStroke")
+pcStroke.Thickness = 2
+pcStroke.Color = Color3.fromRGB(150, 220, 255)
+pcStroke.Parent = profileCard
+
+local avatarImage = Instance.new("ImageLabel")
+avatarImage.Size = UDim2.new(0, 65, 0, 65)
+avatarImage.Position = UDim2.new(0, 15, 0, 15)
+avatarImage.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+avatarImage.BorderSizePixel = 0
+avatarImage.Image = "rbxassetid://0"
+avatarImage.Parent = profileCard
+
+local aiCorner = Instance.new("UICorner")
+aiCorner.CornerRadius = UDim.new(1, 0)
+aiCorner.Parent = avatarImage
+
+local customTitleLabel = Instance.new("TextLabel")
+customTitleLabel.Size = UDim2.new(1, -100, 0, 22)
+customTitleLabel.Position = UDim2.new(0, 92, 0, 12)
+customTitleLabel.BackgroundTransparency = 1
+customTitleLabel.Text = "Ghost"
+customTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+customTitleLabel.TextSize = 14
+customTitleLabel.Font = Enum.Font.SourceSansBold
+customTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+customTitleLabel.Parent = profileCard
+
+local cardMessageLabel = Instance.new("TextLabel")
+cardMessageLabel.Size = UDim2.new(1, -100, 0, 48)
+cardMessageLabel.Position = UDim2.new(0, 92, 0, 34)
+cardMessageLabel.BackgroundTransparency = 1
+cardMessageLabel.Text = ""
+cardMessageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+cardMessageLabel.TextSize = 18
+cardMessageLabel.Font = Enum.Font.SourceSansBold
+cardMessageLabel.TextXAlignment = Enum.TextXAlignment.Left
+cardMessageLabel.TextYAlignment = Enum.TextYAlignment.Top
+cardMessageLabel.TextWrapped = true
+cardMessageLabel.Parent = profileCard
+
+task.spawn(pcall, function()
+    local targetId = AUTHORIZED_USER_ID
+    local thumbUrl = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=150x150&format=Png&isCircular=false", targetId)
+    local successThumb, thumbResult = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet(thumbUrl))
+    end)
+    if successThumb and thumbResult and thumbResult.data and thumbResult.data[1] then
+        avatarImage.Image = thumbResult.data[1].imageUrl
+    end
+end)
+
+local function showProfileCard(msgText, prefix)
+    local notifSound = Instance.new("Sound")
+    notifSound.SoundId = "rbxassetid://17208361335"
+    notifSound.Volume = 1.0
+    notifSound.Parent = screenGui
+    notifSound:Play()
+    notifSound.Ended:Connect(function() notifSound:Destroy() end)
+
+    local formattedText = msgText ~= "" and msgText or "(Sin mensaje)"
+    
+    if selectedMsgTagIndex then
+        local tagData = TAG_CONFIGS[selectedMsgTagIndex]
+        formattedText = "[" .. tagData.Text .. "] " .. formattedText
+    end
+
+    if prefix then
+        formattedText = prefix .. " " .. formattedText
+    end
+
+    local finalTitle = customTitleBox.Text ~= "" and customTitleBox.Text or "Ghost"
+    customTitleLabel.Text = finalTitle
+    customTitleLabel.TextColor3 = selectedTitleColor
+    cardMessageLabel.Text = formattedText
+    cardMessageLabel.TextColor3 = selectedMsgColor
+    
+    profileCard.Visible = true
+    profileCard.Position = UDim2.new(0.5, 0, 0, -110)
+    
+    local info = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    TweenService:Create(profileCard, info, {Position = UDim2.new(0.5, 0, 0, 20)}):Play()
+    
+    task.delay(4, function()
+        if profileCard then
+            local fadeInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+            local tween = TweenService:Create(profileCard, fadeInfo, {Position = UDim2.new(0.5, 0, 0, -110)})
+            tween:Play()
+            tween.Completed:Connect(function()
+                profileCard.Visible = false
+            end)
+        end
+    end)
+end
+
+globalBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    showProfileCard(globalMsgBox.Text, "[GLOBAL]")
+end)
+
+serverBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    showProfileCard(globalMsgBox.Text, "[SERVIDOR]")
+end)
+
+sendUserBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    showProfileCard(globalMsgBox.Text, nil)
+end)
+
+local notificationLabel = Instance.new("TextLabel")
+notificationLabel.Name = "CodeNotification"
+notificationLabel.Size = UDim2.new(0, 420, 0, 40)
+notificationLabel.AnchorPoint = Vector2.new(0.5, 1)
+notificationLabel.Position = UDim2.new(0.5, 0, 0.95, 0)
+notificationLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+notificationLabel.BorderSizePixel = 0
+notificationLabel.Visible = false
+notificationLabel.TextSize = 13
+notificationLabel.Font = Enum.Font.SourceSansBold
+notificationLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+notificationLabel.Parent = screenGui
+
+local notifCorner = Instance.new("UICorner")
+notifCorner.CornerRadius = UDim.new(0, 6)
+notifCorner.Parent = notificationLabel
+
+local notifStroke = Instance.new("UIStroke")
+notifStroke.Thickness = 1
+notifStroke.Color = Color3.fromRGB(100, 100, 100)
+notifStroke.Parent = notificationLabel
+
+local function triggerNotification(text)
+    local notifSound = Instance.new("Sound")
+    notifSound.SoundId = "rbxassetid://17208361335"
+    notifSound.Volume = 1.0
+    notifSound.Parent = screenGui
+    notifSound:Play()
+    notifSound.Ended:Connect(function() notifSound:Destroy() end)
+
+    notificationLabel.Text = text
+    notificationLabel.Visible = true
+    
+    task.delay(3, function()
+        if notificationLabel then
+            notificationLabel.Visible = false
+        end
+    end)
+end
+
+createCodeActionBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    local codeName = customCodeBox.Text ~= "" and customCodeBox.Text or "N/A"
+    triggerNotification(string.format('!Has Creado El Código "%s"', codeName))
+end)
+
+listoBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    local qty = amountTextBox.Text ~= "" and amountTextBox.Text or "0"
+    amountPromptFrame.Visible = false
+    
+    if activeSelectedType == "Calaveritas" then
+        triggerNotification(string.format('Cantidad de calaveritas agregadas "%s"', qty))
+    elseif activeSelectedType == "Dinero" then
+        triggerNotification(string.format('Cantidad de dinero "%s"', qty))
+    end
+end)
+
+-- =========================================================================
+-- LISTA DE JUGADORES CON MULTISELECCIÓN
+-- =========================================================================
+
+local playersFrame = Instance.new("Frame")
+playersFrame.Name = "PlayersFrame"
+playersFrame.Size = UDim2.new(0, 200, 0, 250)
+playersFrame.Position = UDim2.new(0.5, -100, 0.3, 0)
+playersFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+playersFrame.BorderSizePixel = 0
+playersFrame.Active = true
+playersFrame.Draggable = true
+playersFrame.Visible = false
+playersFrame.Parent = screenGui
+
+local pfCorner = Instance.new("UICorner")
+pfCorner.CornerRadius = UDim.new(0, 8)
+pfCorner.Parent = playersFrame
+
+local pfStroke = Instance.new("UIStroke")
+pfStroke.Thickness = 2
+pfStroke.Color = Color3.fromRGB(100, 150, 255)
+pfStroke.Parent = playersFrame
+
+local pfTitle = Instance.new("TextLabel")
+pfTitle.Size = UDim2.new(1, -55, 0, 30)
+pfTitle.Position = UDim2.new(0, 10, 0, 0)
+pfTitle.BackgroundTransparency = 1
+pfTitle.Text = "👥 JUGADORES"
+pfTitle.TextColor3 = Color3.fromRGB(100, 150, 255)
+pfTitle.TextSize = 13
+pfTitle.Font = Enum.Font.SourceSansBold
+pfTitle.TextXAlignment = Enum.TextXAlignment.Left
+pfTitle.Parent = playersFrame
+
+local pfClose = Instance.new("TextButton")
+pfClose.Size = UDim2.new(0, 20, 0, 20)
+pfClose.Position = UDim2.new(1, -25, 0, 5)
+pfClose.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+pfClose.BorderSizePixel = 0
+pfClose.Text = "✕"
+pfClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+pfClose.TextSize = 12
+pfClose.Parent = playersFrame
+
+local pfCloseCorner = Instance.new("UICorner")
+pfCloseCorner.CornerRadius = UDim.new(0, 4)
+pfCloseCorner.Parent = pfClose
+
+-- Botón Seleccionar Todos / Deseleccionar Todos
+local selectAllBtn = Instance.new("TextButton")
+selectAllBtn.Size = UDim2.new(0, 20, 0, 20)
+selectAllBtn.Position = UDim2.new(1, -48, 0, 5)
+selectAllBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 60)
+selectAllBtn.BorderSizePixel = 0
+selectAllBtn.Text = "✓"
+selectAllBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+selectAllBtn.TextSize = 12
+selectAllBtn.Font = Enum.Font.SourceSansBold
+selectAllBtn.Parent = playersFrame
+
+local selectAllCorner = Instance.new("UICorner")
+selectAllCorner.CornerRadius = UDim.new(0, 4)
+selectAllCorner.Parent = selectAllBtn
+
+local updatePlayersList -- Declaración anticipada
+
+selectAllBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    
+    -- Verificamos si hay al menos un jugador no seleccionado
+    local allCurrentlySelected = true
+    for _, p in ipairs(Players:GetPlayers()) do
+        if not selectedPlayersTable[p] then
+            allCurrentlySelected = false
+            break
+        end
+    end
+    
+    -- Si ya estaban todos seleccionados, los deseleccionamos a todos. Si no, los seleccionamos a todos.
+    local newState = not allCurrentlySelected
+    for _, p in ipairs(Players:GetPlayers()) do
+        selectedPlayersTable[p] = newState
+    end
+    
+    if newState then
+        selectAllBtn.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+        selectAllBtn.Text = "✕"
+    else
+        selectAllBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 60)
+        selectAllBtn.Text = "✓"
+    end
+    
+    updateSelectedPlayersCount()
+    updatePlayersList()
+end)
+
+pfClose.MouseButton1Click:Connect(function()
+    playClickSound()
+    playersFrame.Visible = false
+end)
+
+local pfScroll = Instance.new("ScrollingFrame")
+pfScroll.Size = UDim2.new(1, -10, 1, -40)
+pfScroll.Position = UDim2.new(0, 5, 0, 35)
+pfScroll.BackgroundTransparency = 1
+pfScroll.BorderSizePixel = 0
+pfScroll.ScrollBarThickness = 4
+pfScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+pfScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+pfScroll.Parent = playersFrame
+
+local pfLayout = Instance.new("UIListLayout")
+pfLayout.Padding = UDim.new(0, 4)
+pfLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+pfLayout.Parent = pfScroll
+
+openPlayersListBtn.MouseButton1Click:Connect(function()
+    playClickSound()
+    playersFrame.Visible = not playersFrame.Visible
+end)
+
+local bannedPlayers = {}
+
+local function updateSelectedPlayersCount()
+    if isAuthorized and selectedPlayerLabel then
+        local count = 0
+        for _, val in pairs(selectedPlayersTable) do
+            if val then count = count + 1 end
+        end
+        selectedPlayerLabel.Text = "Seleccionados: " .. count
+    end
+    
+    -- Actualizar automáticamente el color y texto del botón general según el estado actual
+    local anyUnselected = false
+    local totalPlayers = 0
+    for _, p in ipairs(Players:GetPlayers()) do
+        totalPlayers = totalPlayers + 1
+        if not selectedPlayersTable[p] then
+            anyUnselected = true
+        end
+    end
+    
+    if totalPlayers > 0 and not anyUnselected then
+        selectAllBtn.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+        selectAllBtn.Text = "✕"
+    else
+        selectAllBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 60)
+        selectAllBtn.Text = "✓"
+    end
+end
+
+updatePlayersList = function()
+    for _, child in ipairs(pfScroll:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 38)
+        
+        if bannedPlayers[p] then
+            btn.BackgroundColor3 = Color3.fromRGB(100, 30, 30)
+        elseif selectedPlayersTable[p] then
+            btn.BackgroundColor3 = Color3.fromRGB(60, 100, 60)
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        end
+        
+        btn.BorderSizePixel = 0
+        btn.Text = ""
+        btn.Parent = pfScroll
+
+        local btnC = Instance.new("UICorner")
+        btnC.CornerRadius = UDim.new(0, 4)
+        btnC.Parent = btn
+
+        -- DisplayName arriba
+        local displayLabel = Instance.new("TextLabel")
+        displayLabel.Size = UDim2.new(1, -10, 0, 18)
+        displayLabel.Position = UDim2.new(0, 5, 0, 2)
+        displayLabel.BackgroundTransparency = 1
+        displayLabel.Text = p.DisplayName
+        displayLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        displayLabel.TextSize = 12
+        displayLabel.Font = Enum.Font.SourceSansBold
+        displayLabel.TextXAlignment = Enum.TextXAlignment.Left
+        displayLabel.Parent = btn
+
+        -- Nombre real de Roblox abajo
+        local usernameLabel = Instance.new("TextLabel")
+        usernameLabel.Size = UDim2.new(1, -10, 0, 16)
+        usernameLabel.Position = UDim2.new(0, 5, 0, 19)
+        usernameLabel.BackgroundTransparency = 1
+        usernameLabel.Text = "@" .. p.Name .. (bannedPlayers[p] and " [BANEADO]" or "")
+        usernameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+        usernameLabel.TextSize = 10
+        usernameLabel.Font = Enum.Font.SourceSans
+        usernameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        usernameLabel.Parent = btn
+
+        btn.MouseButton1Click:Connect(function()
+            playClickSound()
+            selectedPlayersTable[p] = not selectedPlayersTable[p]
+            updateSelectedPlayersCount()
+            updatePlayersList()
+        end)
+    end
+end
+
+Players.PlayerAdded:Connect(updatePlayersList)
+Players.PlayerRemoving:Connect(function(p)
+    selectedPlayersTable[p] = nil
+    bannedPlayers[p] = nil
+    customPlayerTags[p] = nil
+    updateSelectedPlayersCount()
+    updatePlayersList()
+end)
+updatePlayersList()
+
+local function applyCustomTagToPlayer(player)
+    local tagData = customPlayerTags[player]
+    if not tagData or bannedPlayers[player] then return end
+    
+    local char = player.Character
+    if not char then return end
+    local head = char:FindFirstChild("Head")
+    if not head then return end
+
+    if head:FindFirstChild("TargetCustomTag") then
+        head.TargetCustomTag:Destroy()
+    end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "TargetCustomTag"
+    billboard.Size = UDim2.new(0, 220, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = head
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = tagData.Text
+    label.TextColor3 = tagData.TextColor
+    label.TextSize = 22
+    label.Font = Enum.Font.SourceSansBold
+    label.Parent = billboard
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2
+    stroke.Color = Color3.fromRGB(0, 0, 0)
+    stroke.Parent = label
+
+    billboard.Parent = head
+end
+
+if isAuthorized then
+    applyPlayerTagBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        for p, isSelected in pairs(selectedPlayersTable) do
+            if isSelected then
+                customPlayerTags[p] = TAG_CONFIGS[selectedTagIndex]
+                applyCustomTagToPlayer(p)
+            end
+        end
+    end)
+
+    removePlayerTagBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        for p, isSelected in pairs(selectedPlayersTable) do
+            if isSelected then
+                customPlayerTags[p] = nil
+                local char = p.Character
+                if char and char:FindFirstChild("Head") then
+                    local tag = char.Head:FindFirstChild("TargetCustomTag")
+                    if tag then tag:Destroy() end
+                end
+            end
+        end
+    end)
+end
+
+for _, p in ipairs(Players:GetPlayers()) do
+    p.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        applyCustomTagToPlayer(p)
+    end)
+end
+
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        applyCustomTagToPlayer(p)
+    end)
+end)
+
+local espEnabled = false
+local activeEspObjects = {}
+
+local function removeESPForPlayer(player)
+    if activeEspObjects[player] then
+        for _, obj in pairs(activeEspObjects[player]) do
+            if obj then obj:Destroy() end
+        end
+        activeEspObjects[player] = nil
+    end
+end
+
+local function isEnemy(player)
+    if not LocalPlayer.Team then return true end
+    return player.Team ~= LocalPlayer.Team
+end
+
+local function applyESPToCharacter(player, character)
+    if not espEnabled or player == LocalPlayer or bannedPlayers[player] then return end
+    
+    removeESPForPlayer(player)
+    activeEspObjects[player] = {}
+
+    local head = character:WaitForChild("Head", 5)
+    if not head then return end
+
+    local enemy = isEnemy(player)
+    local teamColor = enemy and Color3.fromRGB(255, 50, 50) or Color3.fromRGB(186, 85, 211)
+    local textColor = enemy and Color3.fromRGB(255, 80, 80) or Color3.fromRGB(255, 255, 255)
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "EspHighlight"
+    highlight.Adornee = character
+    highlight.FillColor = teamColor
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = character
+    table.insert(activeEspObjects[player], highlight)
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "EspTag"
+    billboard.Size = UDim2.new(0, 200, 0, 40)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = head
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "EspText"
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextSize = 14
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextColor3 = textColor
+    textLabel.Parent = billboard
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.5
+    stroke.Color = Color3.fromRGB(0, 0, 0)
+    stroke.Parent = textLabel
+
+    billboard.Parent = head
+    table.insert(activeEspObjects[player], billboard)
+end
+
+local function setCharacterVisibility(player, visible)
+    local char = player.Character
+    if not char then return end
+
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") or part:IsA("Decal") then
+            part.Transparency = visible and 0 or 1
+        end
+    end
+
+    local head = char:FindFirstChild("Head")
+    if head then
+        local tag = head:FindFirstChild("TargetCustomTag")
+        if tag then tag.Enabled = visible end
+    end
+
+    if not visible then
+        removeESPForPlayer(player)
+    else
+        if espEnabled then
+            applyESPToCharacter(player, char)
+        end
+    end
+end
+
+if isAuthorized then
+    fakeBanBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        for p, isSelected in pairs(selectedPlayersTable) do
+            if isSelected and p ~= LocalPlayer then
+                bannedPlayers[p] = true
+                setCharacterVisibility(p, false)
+            end
+        end
+        updatePlayersList()
+    end)
+
+    fakeUnbanBtn.MouseButton1Click:Connect(function()
+        playClickSound()
+        for p, isSelected in pairs(selectedPlayersTable) do
+            if isSelected then
+                bannedPlayers[p] = nil
+                setCharacterVisibility(p, true)
+                applyCustomTagToPlayer(p)
+            end
+        end
+        updatePlayersList()
+    end)
+end
+
+local dragging, dragInput, dragStart, startPos
+
+secretMenuButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = secretMenuButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+secretMenuButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        secretMenuButton.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+secretMenuButton.MouseButton1Click:Connect(function()
+    playClickSound()
+    espFrame.Visible = not espFrame.Visible
+end)
+
+RunService.RenderStepped:Connect(function()
+    for p, _ in pairs(bannedPlayers) do
+        if p and p.Character then
+            setCharacterVisibility(p, false)
+        end
+    end
+
+    if not espEnabled then return end
+    
+    local myChar = LocalPlayer.Character
+    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and not bannedPlayers[player] then
+            local char = player.Character
+            if char and char:FindFirstChild("Head") and char:FindFirstChild("HumanoidRootPart") then
+                if not activeEspObjects[player] or not char:FindFirstChild("EspHighlight") then
+                    applyESPToCharacter(player, char)
+                end
+
+                local head = char.Head
+                local root = char.HumanoidRootPart
+                local billboard = head:FindFirstChild("EspTag")
+                
+                if billboard and myRoot then
+                    local textLabel = billboard:FindFirstChild("EspText")
+                    if textLabel then
+                        local distance = math.floor((myRoot.Position - root.Position).Magnitude)
+                        local tagText = ""
+                        if customPlayerTags[player] then
+                            tagText = customPlayerTags[player].Text .. " "
+                        end
+                        textLabel.Text = string.format("%s@%s\n[%dm]", tagText, player.Name, distance)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+espToggleButton.MouseButton1Click:Connect(function()
+    playClickSound()
+    espEnabled = not espEnabled
+    
+    if espEnabled then
+        espToggleButton.Text = "ESP: [ACTIVADO]"
+        espToggleButton.TextColor3 = Color3.fromRGB(100, 255, 100)
+        espBtnStroke.Color = Color3.fromRGB(50, 200, 50)
+        
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player.Character and not bannedPlayers[player] then
+                applyESPToCharacter(player, player.Character)
+            end
+        end
+    else
+        espToggleButton.Text = "ESP: [DESACTIVADO]"
+        espToggleButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+        espBtnStroke.Color = Color3.fromRGB(200, 50, 50)
+        
+        for player, _ in pairs(activeEspObjects) do
+            removeESPForPlayer(player)
+        end
+        activeEspObjects = {}
+    end
+end)
+
+local activeTagIndex = nil
+local createdButtons = {}
+
+local function forceApplyTag()
+    if not activeTagIndex then return end
+    local character = LocalPlayer.Character
+    if not character then return end
+    local head = character:FindFirstChild("Head")
+    if not head then return end
+
+    local existingTag = head:FindFirstChild("CreatorTag")
+    if existingTag then return end
+
+    local tagData = TAG_CONFIGS[activeTagIndex]
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "CreatorTag"
+    billboard.Size = UDim2.new(0, 220, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = head
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = tagData.Text
+    label.TextColor3 = tagData.TextColor
+    label.TextSize = 24
+    label.Font = Enum.Font.SourceSansBold
+    label.Parent = billboard
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2.5
+    stroke.Color = Color3.fromRGB(0, 0, 0)
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+    stroke.Parent = label
+
+    billboard.Parent = head
+end
+
+local function removeCurrentTag()
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("Head") then
+        local tag = character.Head:FindFirstChild("CreatorTag")
+        if tag then tag:Destroy() end
+    end
+end
+
+local function updateButtonStyles()
+    for index, btn in ipairs(createdButtons) do
+        local config = TAG_CONFIGS[index]
+        if activeTagIndex == index then
+            btn.BackgroundColor3 = config.ActiveBg
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        end
+    end
+end
+
+local function toggleTag(index)
+    if activeTagIndex == index then
+        activeTagIndex = nil
+        removeCurrentTag()
+    else
+        removeCurrentTag()
+        activeTagIndex = index
+        forceApplyTag()
+    end
+    updateButtonStyles()
+end
+
+for i, config in ipairs(TAG_CONFIGS) do
+    local button = Instance.new("TextButton")
+    button.Name = config.Name .. "Button"
+    button.Size = UDim2.new(0, 195, 0, 36)
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BorderSizePixel = 0
+    button.Text = config.Text
+    button.TextColor3 = config.TextColor
+    button.TextSize = 13
+    button.Font = Enum.Font.SourceSansBold
+    button.LayoutOrder = i
+    button.Parent = scrollContainer
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = button
+
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Thickness = 1.5
+    btnStroke.Color = config.BorderColor
+    btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    btnStroke.Parent = button
+
+    button.MouseButton1Click:Connect(function()
+        playClickSound()
+        toggleTag(i)
+    end)
+
+    table.insert(createdButtons, button)
+end
+
+task.spawn(function()
+    while task.wait(0.5) do
+        if activeTagIndex then
+            forceApplyTag()
+        end
+        for p, _ in pairs(customPlayerTags) do
+            if p and p.Character and p.Character:FindFirstChild("Head") then
+                if not p.Character.Head:FindFirstChild("TargetCustomTag") then
+                    applyCustomTagToPlayer(p)
+                end
+            end
+        end
+    end
+end)
+
+if TextChatService and TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+    TextChatService.OnIncomingMessage = function(message)
+        local properties = Instance.new("TextChatMessageProperties")
+        
+        if message.TextSource and message.TextSource.UserId == LocalPlayer.UserId and activeTagIndex then
+            local tagData = TAG_CONFIGS[activeTagIndex]
+            local tagPrefix = string.format('<font color="%s"><b>[%s]</b></font>', tagData.HexColor, tagData.Text)
+            local coloredName = string.format('<font color="%s"><b>%s</b></font>', tagData.HexColor, LocalPlayer.DisplayName)
+            local coloredColon = string.format('<font color="%s"><b>:</b></font>', tagData.HexColor)
+            local coloredText = string.format('<font color="%s">%s</font>', tagData.HexColor, message.Text)
+            
+            properties.PrefixText = tagPrefix .. " " .. coloredName .. coloredColon
+            properties.Text = coloredText
+            return properties
+        end
+
+        if message.TextSource then
+            for p, tagData in pairs(customPlayerTags) do
+                if p.UserId == message.TextSource.UserId then
+                    local tagPrefix = string.format('<font color="%s"><b>[%s]</b></font>', tagData.HexColor, tagData.Text)
+                    local coloredName = string.format('<font color="%s"><b>%s</b></font>', tagData.HexColor, p.DisplayName)
+                    local coloredColon = string.format('<font color="%s"><b>:</b></font>', tagData.HexColor)
+                    local coloredText = string.format('<font color="%s">%s</font>', tagData.HexColor, message.Text)
+                    
+                    properties.PrefixText = tagPrefix .. " " .. coloredName .. coloredColon
+                    properties.Text = coloredText
+                    return properties
+                end
+            end
+        end
+
+        return properties
+    end
+end
